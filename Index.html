@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Icon Video Generator Pro</title>
+<style>
+  :root {
+    --bg: #0b0f19;
+    --panel: #131a2b;
+    --panel-2: #1a2340;
+    --border: #253055;
+    --text: #e7ecf7;
+    --muted: #8f9bbd;
+    --accent: #7c5cff;
+    --accent-2: #22d3ee;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: radial-gradient(1200px 800px at 10% -10%, #1b2450 0%, transparent 60%),
+                radial-gradient(900px 700px at 110% 10%, #2a1550 0%, transparent 60%),
+                var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+  }
+  header { padding: 18px 20px 6px; text-align: center; }
+  header h1 {
+    margin: 0 0 4px; font-size: 22px; letter-spacing: 0.3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  header p { margin: 0; color: var(--muted); font-size: 13px; }
+  main {
+    display: grid; grid-template-columns: 1fr; gap: 16px;
+    padding: 16px; max-width: 1240px; margin: 0 auto;
+  }
+  @media (min-width: 960px) { main { grid-template-columns: 1fr 400px; align-items: start; } }
+  .card {
+    background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+    border: 1px solid var(--border); border-radius: 16px; padding: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+  .preview-wrap {
+    display:flex; align-items:center; justify-content:center;
+    aspect-ratio: 1/1; background: #05070d;
+    border-radius: 12px; overflow: hidden; border: 1px solid var(--border);
+    background-image: linear-gradient(45deg,#0a0e18 25%,transparent 25%),
+                      linear-gradient(-45deg,#0a0e18 25%,transparent 25%),
+                      linear-gradient(45deg,transparent 75%,#0a0e18 75%),
+                      linear-gradient(-45deg,transparent 75%,#0a0e18 75%);
+    background-size: 24px 24px;
+    background-position: 0 0,0 12px,12px -12px,-12px 0;
+  }
+  canvas#preview { width: 100%; height: 100%; display: block; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+  .row > * { flex: 1 1 140px; }
+  label { display:block; font-size:12px; color: var(--muted); margin-bottom:6px; }
+  input[type="range"], input[type="number"], input[type="text"], select {
+    width:100%; background:#0e1426; color:var(--text);
+    border:1px solid var(--border); border-radius:10px;
+    padding:10px 12px; font-size:14px; outline:none;
+  }
+  input[type="range"]{ padding:0; height:32px; }
+  .val { color:var(--text); font-weight:600; font-size:12px; margin-left:6px; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(48px,1fr)); gap:6px; }
+  .swatch, .icon-btn {
+    aspect-ratio:1/1; border-radius:10px; border:2px solid transparent;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+    font-size:22px; background:#0e1426;
+    transition: transform .12s ease, border-color .12s ease;
+  }
+  .swatch.selected, .icon-btn.selected { border-color: var(--accent-2); transform: scale(1.05); }
+  .icon-btn.picked { border-color: #22c55e; box-shadow: inset 0 0 0 2px rgba(34,197,94,.25); }
+  .icon-btn .count {
+    position:absolute; margin-top:-28px; margin-left:22px;
+    background:#22c55e; color:#052e14; font-size:10px; font-weight:800;
+    border-radius:999px; padding:1px 5px;
+  }
+  .icon-btn { position:relative; }
+  h3 { margin: 4px 0 8px; font-size:13px; letter-spacing:.4px; color: var(--muted); text-transform:uppercase; }
+  .tab-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+  .tab {
+    padding:6px 10px; font-size:12px; border-radius:999px;
+    background:#0e1426; border:1px solid var(--border);
+    color:var(--muted); cursor:pointer;
+  }
+  .tab.active { color:#0b0f19; background:linear-gradient(90deg,var(--accent),var(--accent-2)); border-color:transparent; font-weight:700; }
+  button.primary, button.ghost, button.small {
+    width:100%; padding:14px 16px; border-radius:12px; border:0;
+    font-weight:700; font-size:15px; cursor:pointer;
+    transition: transform .1s, filter .12s;
+  }
+  button.primary { background: linear-gradient(90deg,var(--accent),var(--accent-2)); color:#0b0f19; }
+  button.primary:disabled { filter: grayscale(.6) brightness(.7); cursor:not-allowed; }
+  button.primary:not(:disabled):hover { transform: translateY(-1px); }
+  button.ghost { background:transparent; color:var(--text); border:1px solid var(--border); }
+  button.small { padding:8px 10px; font-size:12px; }
+  .status { margin-top:10px; font-size:13px; color:var(--muted); text-align:center; min-height:18px; }
+  .progress { height:6px; background:#0e1426; border-radius:999px; overflow:hidden; border:1px solid var(--border); margin-top:8px; }
+  .progress > div { height:100%; width:0%; background: linear-gradient(90deg,var(--accent),var(--accent-2)); transition: width .1s linear; }
+  details { margin-top:10px; }
+  summary { cursor:pointer; color:var(--muted); font-size:13px; }
+  .footer { text-align:center; color:var(--muted); font-size:12px; padding:10px 16px 24px; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:999px; background:#0e1426; border:1px solid var(--border); font-size:11px; color:var(--muted); margin-left:6px;}
+  .picked-list { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; min-height:38px; padding:6px; border:1px dashed var(--border); border-radius:10px; }
+  .chip { display:inline-flex; align-items:center; gap:4px; background:#0e1426; border:1px solid var(--border); padding:4px 8px; border-radius:999px; font-size:14px; }
+  .chip button { background:transparent; color:var(--muted); border:0; cursor:pointer; font-size:14px; padding:0; }
+  .hint { font-size:11px; color:var(--muted); margin-top:6px; }
+  .greenscreen-badge {
+    display:inline-block; background:#00b140; color:#fff; font-size:10px;
+    font-weight:800; padding:2px 6px; border-radius:4px; margin-left:4px;
+    letter-spacing:.5px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Icon Video Generator Pro</h1>
+  <p>Video ikon animasi — multi-ikon, green screen, kualitas tinggi. Android & PC, 100% offline.</p>
+</header>
+<main>
+  <section class="card">
+    <div class="preview-wrap">
+      <canvas id="preview" width="720" height="720"></canvas>
+    </div>
+    <div class="row">
+      <button id="btnRecord" class="primary">Rekam &amp; Unduh Video</button>
+      <button id="btnPlay" class="ghost">Play Preview</button>
+    </div>
+    <div class="progress"><div id="progressBar"></div></div>
+    <div class="status" id="status">Siap merekam.</div>
+
+    <details>
+      <summary>Cara Deploy ke GitHub Pages (file HTML) — klik untuk buka</summary>
+      <ol style="font-size:13px;color:var(--muted);line-height:1.6">
+        <li>Klik <b>Unduh HTML Mandiri</b> di bawah → simpan sebagai <code>index.html</code>.</li>
+        <li>Buka <a href="https://github.com/new" target="_blank" style="color:var(--accent-2)">github.com/new</a>, buat repo baru (contoh: <code>icon-video</code>), pilih <b>Public</b>, centang <i>Add a README</i>.</li>
+        <li>Di repo baru, klik <b>Add file → Upload files</b>, seret <code>index.html</code> ke sana, lalu <b>Commit changes</b>.</li>
+        <li>Buka tab <b>Settings → Pages</b>. Di bagian <i>Source</i> pilih <b>Deploy from a branch</b>, Branch: <b>main</b> / folder <b>/(root)</b>, klik <b>Save</b>.</li>
+        <li>Tunggu ±1 menit. URL akan muncul di halaman itu: <code>https://&lt;username&gt;.github.io/icon-video/</code>.</li>
+        <li>Buka URL tersebut di Android/PC — aplikasi jalan langsung dari browser. 🎉</li>
+      </ol>
+      <button id="btnDownloadHtml" class="ghost small" style="margin-top:8px">⬇️ Unduh HTML Mandiri</button>
+    </details>
+  </section>
+
+  <aside class="card">
+    <h3>Latar Belakang</h3>
+    <div class="grid" id="bgGrid"></div>
+    <div class="hint">Latar <span class="greenscreen-badge">GREEN SCREEN</span> siap untuk chroma key di CapCut / Premiere / DaVinci.</div>
+
+    <h3 style="margin-top:16px">Template Ikon <span class="badge" id="pickedCount">0 dipilih</span></h3>
+    <div class="tab-row" id="tabRow"></div>
+    <div class="grid" id="iconGrid"></div>
+    <div class="hint">Ketuk ikon untuk menambahkannya. Ketuk lagi untuk menambah salinan. Klik chip di bawah untuk menghapus.</div>
+    <div class="picked-list" id="pickedList"></div>
+    <div class="row" style="margin-top:8px">
+      <button class="ghost small" id="btnClearIcons">Kosongkan</button>
+      <button class="ghost small" id="btnRandomIcons">🎲 Acak 5 Ikon</button>
+    </div>
+
+    <h3 style="margin-top:16px">Pengaturan</h3>
+    <div>
+      <label>Ukuran Ikon <span class="val" id="sizeVal">55%</span></label>
+      <input type="range" id="size" min="10" max="95" value="55" />
+    </div>
+    <div style="margin-top:10px">
+      <label>Durasi Video <span class="val" id="durVal">4 dtk</span></label>
+      <input type="range" id="duration" min="1" max="30" value="4" />
+    </div>
+    <div style="margin-top:10px">
+      <label>Gerakan Ikon</label>
+      <select id="motion">
+        <option value="pulse">Pulse (denyut)</option>
+        <option value="spin">Spin (putar)</option>
+        <option value="bounce">Bounce (memantul)</option>
+        <option value="orbit">Orbit (melingkar)</option>
+        <option value="shake">Shake (goyang)</option>
+        <option value="zoom">Zoom In/Out</option>
+        <option value="float">Float (mengambang)</option>
+        <option value="wave">Wave (gelombang)</option>
+        <option value="scatter">Scatter (menyebar)</option>
+        <option value="none">Diam</option>
+      </select>
+    </div>
+    <div style="margin-top:10px">
+      <label>Tata Letak Multi-Ikon</label>
+      <select id="layout">
+        <option value="center">Tumpuk di Tengah</option>
+        <option value="row">Baris Horizontal</option>
+        <option value="circle">Melingkar</option>
+        <option value="grid">Grid</option>
+        <option value="random">Acak</option>
+      </select>
+    </div>
+    <div style="margin-top:10px">
+      <label>Kecepatan Gerak <span class="val" id="spdVal">1.0x</span></label>
+      <input type="range" id="speed" min="2" max="30" value="10" />
+    </div>
+
+    <h3 style="margin-top:16px">Kualitas Video</h3>
+    <div>
+      <label>Preset Kualitas</label>
+      <select id="quality">
+        <option value="draft">Draft — 720p · 24fps · 4 Mbps</option>
+        <option value="standard" selected>Standar — 1080p · 30fps · 10 Mbps</option>
+        <option value="high">Tinggi — 1080p · 60fps · 16 Mbps</option>
+        <option value="ultra">Ultra HD — 1440p · 60fps · 24 Mbps</option>
+        <option value="4k">4K — 2160p · 60fps · 40 Mbps</option>
+        <option value="custom">Kustom…</option>
+      </select>
+    </div>
+    <details id="customQ">
+      <summary>Opsi Kustom</summary>
+      <div style="margin-top:10px">
+        <label>Resolusi (px, kotak)</label>
+        <select id="resolution">
+          <option value="480">480</option>
+          <option value="720">720</option>
+          <option value="1080" selected>1080</option>
+          <option value="1440">1440</option>
+          <option value="2160">2160 (4K)</option>
+        </select>
+      </div>
+      <div style="margin-top:10px">
+        <label>Frame Rate <span class="val" id="fpsVal">30 fps</span></label>
+        <input type="range" id="fps" min="15" max="60" value="30" />
+      </div>
+      <div style="margin-top:10px">
+        <label>Bitrate <span class="val" id="brVal">10 Mbps</span></label>
+        <input type="range" id="bitrate" min="2" max="50" value="10" />
+      </div>
+      <div style="margin-top:10px">
+        <label>Emoji Kustom (opsional — tambah ke daftar)</label>
+        <div style="display:flex; gap:8px">
+          <input type="text" id="customEmoji" maxlength="8" placeholder="Contoh: 🚀" />
+          <button class="ghost small" id="btnAddEmoji" style="flex:0 0 auto; width:auto; padding:8px 14px">+ Tambah</button>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Icon Video Generator Pro</title>
+<style>
+  :root {
+    --bg: #0b0f19;
+    --panel: #131a2b;
+    --panel-2: #1a2340;
+    --border: #253055;
+    --text: #e7ecf7;
+    --muted: #8f9bbd;
+    --accent: #7c5cff;
+    --accent-2: #22d3ee;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: radial-gradient(1200px 800px at 10% -10%, #1b2450 0%, transparent 60%),
+                radial-gradient(900px 700px at 110% 10%, #2a1550 0%, transparent 60%),
+                var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+  }
+  header { padding: 18px 20px 6px; text-align: center; }
+  header h1 {
+    margin: 0 0 4px; font-size: 22px; letter-spacing: 0.3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  header p { margin: 0; color: var(--muted); font-size: 13px; }
+  main {
+    display: grid; grid-template-columns: 1fr; gap: 16px;
+    padding: 16px; max-width: 1240px; margin: 0 auto;
+  }
+  @media (min-width: 960px) { main { grid-template-columns: 1fr 400px; align-items: start; } }
+  .card {
+    background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+    border: 1px solid var(--border); border-radius: 16px; padding: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+  .preview-wrap {
+    display:flex; align-items:center; justify-content:center;
+    aspect-ratio: 1/1; background: #05070d;
+    border-radius: 12px; overflow: hidden; border: 1px solid var(--border);
+    background-image: linear-gradient(45deg,#0a0e18 25%,transparent 25%),
+                      linear-gradient(-45deg,#0a0e18 25%,transparent 25%),
+                      linear-gradient(45deg,transparent 75%,#0a0e18 75%),
+                      linear-gradient(-45deg,transparent 75%,#0a0e18 75%);
+    background-size: 24px 24px;
+    background-position: 0 0,0 12px,12px -12px,-12px 0;
+  }
+  canvas#preview { width: 100%; height: 100%; display: block; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+  .row > * { flex: 1 1 140px; }
+  label { display:block; font-size:12px; color: var(--muted); margin-bottom:6px; }
+  input[type="range"], input[type="number"], input[type="text"], select {
+    width:100%; background:#0e1426; color:var(--text);
+    border:1px solid var(--border); border-radius:10px;
+    padding:10px 12px; font-size:14px; outline:none;
+  }
+  input[type="range"]{ padding:0; height:32px; }
+  .val { color:var(--text); font-weight:600; font-size:12px; margin-left:6px; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(48px,1fr)); gap:6px; }
+  .swatch, .icon-btn {
+    aspect-ratio:1/1; border-radius:10px; border:2px solid transparent;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+    font-size:22px; background:#0e1426;
+    transition: transform .12s ease, border-color .12s ease;
+  }
+  .swatch.selected, .icon-btn.selected { border-color: var(--accent-2); transform: scale(1.05); }
+  .icon-btn.picked { border-color: #22c55e; box-shadow: inset 0 0 0 2px rgba(34,197,94,.25); }
+  .icon-btn .count {
+    position:absolute; margin-top:-28px; margin-left:22px;
+    background:#22c55e; color:#052e14; font-size:10px; font-weight:800;
+    border-radius:999px; padding:1px 5px;
+  }
+  .icon-btn { position:relative; }
+  h3 { margin: 4px 0 8px; font-size:13px; letter-spacing:.4px; color: var(--muted); text-transform:uppercase; }
+  .tab-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+  .tab {
+    padding:6px 10px; font-size:12px; border-radius:999px;
+    background:#0e1426; border:1px solid var(--border);
+    color:var(--muted); cursor:pointer;
+  }
+  .tab.active { color:#0b0f19; background:linear-gradient(90deg,var(--accent),var(--accent-2)); border-color:transparent; font-weight:700; }
+  button.primary, button.ghost, button.small {
+    width:100%; padding:14px 16px; border-radius:12px; border:0;
+    font-weight:700; font-size:15px; cursor:pointer;
+    transition: transform .1s, filter .12s;
+  }
+  button.primary { background: linear-gradient(90deg,var(--accent),var(--accent-2)); color:#0b0f19; }
+  button.primary:disabled { filter: grayscale(.6) brightness(.7); cursor:not-allowed; }
+  button.primary:not(:disabled):hover { transform: translateY(-1px); }
+  button.ghost { background:transparent; color:var(--text); border:1px solid var(--border); }
+  button.small { padding:8px 10px; font-size:12px; }
+  .status { margin-top:10px; font-size:13px; color:var(--muted); text-align:center; min-height:18px; }
+  .progress { height:6px; background:#0e1426; border-radius:999px; overflow:hidden; border:1px solid var(--border); margin-top:8px; }
+  .progress > div { height:100%; width:0%; background: linear-gradient(90deg,var(--accent),var(--accent-2)); transition: width .1s linear; }
+  details { margin-top:10px; }
+  summary { cursor:pointer; color:var(--muted); font-size:13px; }
+  .footer { text-align:center; color:var(--muted); font-size:12px; padding:10px 16px 24px; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:999px; background:#0e1426; border:1px solid var(--border); font-size:11px; color:var(--muted); margin-left:6px;}
+  .picked-list { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; min-height:38px; padding:6px; border:1px dashed var(--border); border-radius:10px; }
+  .chip { display:inline-flex; align-items:center; gap:4px; background:#0e1426; border:1px solid var(--border); padding:4px 8px; border-radius:999px; font-size:14px; }
+  .chip button { background:transparent; color:var(--muted); border:0; cursor:pointer; font-size:14px; padding:0; }
+  .hint { font-size:11px; color:var(--muted); margin-top:6px; }
+  .greenscreen-badge {
+    display:inline-block; background:#00b140; color:#fff; font-size:10px;
+    font-weight:800; padding:2px 6px; border-radius:4px; margin-left:4px;
+    letter-spacing:.5px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Icon Video Generator Pro</h1>
+  <p>Video ikon animasi — multi-ikon, green screen, kualitas tinggi. Android & PC, 100% offline.</p>
+</header>
+<main>
+  <section class="card">
+    <div class="preview-wrap">
+      <canvas id="preview" width="720" height="720"></canvas>
+    </div>
+    <div class="row">
+      <button id="btnRecord" class="primary">Rekam &amp; Unduh Video</button>
+      <button id="btnPlay" class="ghost">Play Preview</button>
+    </div>
+    <div class="progress"><div id="progressBar"></div></div>
+    <div class="status" id="status">Siap merekam.</div>
+
+    <details>
+      <summary>Cara Deploy ke GitHub Pages (file HTML) — klik untuk buka</summary>
+      <ol style="font-size:13px;color:var(--muted);line-height:1.6">
+        <li>Klik <b>Unduh HTML Mandiri</b> di bawah → simpan sebagai <code>index.html</code>.</li>
+        <li>Buka <a href="https://github.com/new" target="_blank" style="color:var(--accent-2)">github.com/new</a>, buat repo baru (contoh: <code>icon-video</code>), pilih <b>Public</b>, centang <i>Add a README</i>.</li>
+        <li>Di repo baru, klik <b>Add file → Upload files</b>, seret <code>index.html</code> ke sana, lalu <b>Commit changes</b>.</li>
+        <li>Buka tab <b>Settings → Pages</b>. Di bagian <i>Source</i> pilih <b>Deploy from a branch</b>, Branch: <b>main</b> / folder <b>/(root)</b>, klik <b>Save</b>.</li>
+        <li>Tunggu ±1 menit. URL akan muncul di halaman itu: <code>https://&lt;username&gt;.github.io/icon-video/</code>.</li>
+        <li>Buka URL tersebut di Android/PC — aplikasi jalan langsung dari browser. 🎉</li>
+      </ol>
+      <button id="btnDownloadHtml" class="ghost small" style="margin-top:8px">⬇️ Unduh HTML Mandiri</button>
+    </details>
+  </section>
+
+  <aside class="card">
+    <h3>Latar Belakang</h3>
+    <div class="grid" id="bgGrid"></div>
+    <div class="hint">Latar <span class="greenscreen-badge">GREEN SCREEN</span> siap untuk chroma key di CapCut / Premiere / DaVinci.</div>
+
+    <h3 style="margin-top:16px">Template Ikon <span class="badge" id="pickedCount">0 dipilih</span></h3>
+    <div class="tab-row" id="tabRow"></div>
+    <div class="grid" id="iconGrid"></div>
+    <div class="hint">Ketuk ikon untuk menambahkannya. Ketuk lagi untuk menambah salinan. Klik chip di bawah untuk menghapus.</div>
+    <div class="picked-list" id="pickedList"></div>
+    <div class="row" style="margin-top:8px">
+      <button class="ghost small" id="btnClearIcons">Kosongkan</button>
+      <button class="ghost small" id="btnRandomIcons">🎲 Acak 5 Ikon</button>
+    </div>
+
+    <h3 style="margin-top:16px">Pengaturan</h3>
+    <div>
+      <label>Ukuran Ikon <span class="val" id="sizeVal">55%</span></label>
+      <input type="range" id="size" min="10" max="95" value="55" />
+    </div>
+    <div style="margin-top:10px">
+      <label>Durasi Video <span class="val" id="durVal">4 dtk</span></label>
+      <input type="range" id="duration" min="1" max="30" value="4" />
+    </div>
+    <div style="margin-top:10px">
+      <label>Gerakan Ikon</label>
+      <select id="motion">
+        <option value="pulse">Pulse (denyut)</option>
+        <option value="spin">Spin (putar)</option>
+        <option value="bounce">Bounce (memantul)</option>
+        <option value="orbit">Orbit (melingkar)</option>
+        <option value="shake">Shake (goyang)</option>
+        <option value="zoom">Zoom In/Out</option>
+        <option value="float">Float (mengambang)</option>
+        <option value="wave">Wave (gelombang)</option>
+        <option value="scatter">Scatter (menyebar)</option>
+        <option value="none">Diam</option>
+      </select>
+    </div>
+    <div style="margin-top:10px">
+      <label>Tata Letak Multi-Ikon</label>
+      <select id="layout">
+        <option value="center">Tumpuk di Tengah</option>
+        <option value="row">Baris Horizontal</option>
+        <option value="circle">Melingkar</option>
+        <option value="grid">Grid</option>
+        <option value="random">Acak</option>
+      </select>
+    </div>
+    <div style="margin-top:10px">
+      <label>Kecepatan Gerak <span class="val" id="spdVal">1.0x</span></label>
+      <input type="range" id="speed" min="2" max="30" value="10" />
+    </div>
+
+    <h3 style="margin-top:16px">Kualitas Video</h3>
+    <div>
+      <label>Preset Kualitas</label>
+      <select id="quality">
+        <option value="draft">Draft — 720p · 24fps · 4 Mbps</option>
+        <option value="standard" selected>Standar — 1080p · 30fps · 10 Mbps</option>
+        <option value="high">Tinggi — 1080p · 60fps · 16 Mbps</option>
+        <option value="ultra">Ultra HD — 1440p · 60fps · 24 Mbps</option>
+        <option value="4k">4K — 2160p · 60fps · 40 Mbps</option>
+        <option value="custom">Kustom…</option>
+      </select>
+    </div>
+    <details id="customQ">
+      <summary>Opsi Kustom</summary>
+      <div style="margin-top:10px">
+        <label>Resolusi (px, kotak)</label>
+        <select id="resolution">
+          <option value="480">480</option>
+          <option value="720">720</option>
+          <option value="1080" selected>1080</option>
+          <option value="1440">1440</option>
+          <option value="2160">2160 (4K)</option>
+        </select>
+      </div>
+      <div style="margin-top:10px">
+        <label>Frame Rate <span class="val" id="fpsVal">30 fps</span></label>
+        <input type="range" id="fps" min="15" max="60" value="30" />
+      </div>
+      <div style="margin-top:10px">
+        <label>Bitrate <span class="val" id="brVal">10 Mbps</span></label>
+        <input type="range" id="bitrate" min="2" max="50" value="10" />
+      </div>
+      <div style="margin-top:10px">
+        <label>Emoji Kustom (opsional — tambah ke daftar)</label>
+        <div style="display:flex; gap:8px">
+          <input type="text" id="customEmoji" maxlength="8" placeholder="Contoh: 🚀" />
+          <button class="ghost small" id="btnAddEmoji" style="flex:0 0 auto; width:auto; padding:8px 14px">+ Tambah</button>
+        </div>
+      </div>
+    </details>
+  </aside>
+</main>
+<section class="card" style="max-width:1240px;margin:0 auto 16px;">
+  <h3>Metadata Stock Footage <span class="badge">Adobe · Shutterstock · Pond5 · Motion Array · Envato · iStock</span></h3>
+  <div class="row">
+    <div>
+      <label>Judul (Title) — max ~70 karakter</label>
+      <input type="text" id="metaTitle" maxlength="200" placeholder="Contoh: Colorful Animated Icon Loop on Green Screen 4K" />
+    </div>
+    <div>
+      <label>Kategori Adobe Stock</label>
+      <select id="metaCategory">
+        <option>Graphic Resources</option>
+        <option>Backgrounds/Textures</option>
+        <option>Business/Finance</option>
+        <option>Concepts</option>
+        <option>Signs/Symbols</option>
+        <option>Technology</option>
+        <option>The Arts</option>
+        <option>Objects</option>
+        <option>Beauty/Fashion</option>
+        <option>Holidays/Celebrations</option>
+      </select>
+    </div>
+  </div>
+  <div style="margin-top:10px">
+    <label>Deskripsi</label>
+    <textarea id="metaDesc" rows="2" style="width:100%;background:#0e1426;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;outline:none" placeholder="Deskripsi singkat 1-2 kalimat…"></textarea>
+  </div>
+  <div style="margin-top:10px">
+    <label>Keywords (pisahkan dengan koma, min 15, max 49 untuk Adobe)</label>
+    <textarea id="metaKeywords" rows="3" style="width:100%;background:#0e1426;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;outline:none" placeholder="animated icon, green screen, loop, 4k, motion graphic, …"></textarea>
+    <div class="hint">Klik <b>Auto-Isi</b> untuk membuat metadata otomatis dari ikon & latar yang kamu pilih.</div>
+  </div>
+  <div class="row" style="margin-top:6px">
+    <div>
+      <label>Model / Property Release</label>
+      <select id="metaRelease">
+        <option value="none">Tidak diperlukan (ikon/animasi)</option>
+        <option value="model">Model Release</option>
+        <option value="property">Property Release</option>
+      </select>
+    </div>
+    <div>
+      <label>Konten</label>
+      <select id="metaEditorial">
+        <option value="commercial">Commercial (bebas jual)</option>
+        <option value="editorial">Editorial</option>
+      </select>
+    </div>
+    <div>
+      <label>Kontributor / Author</label>
+      <input type="text" id="metaAuthor" placeholder="Nama kamu" />
+    </div>
+  </div>
+  <div class="row" style="margin-top:10px">
+    <button class="ghost small" id="btnAutoMeta">✨ Auto-Isi Metadata</button>
+    <button class="ghost small" id="btnExportAdobe">⬇️ CSV Adobe Stock</button>
+    <button class="ghost small" id="btnExportShutter">⬇️ CSV Shutterstock</button>
+    <button class="ghost small" id="btnExportPond">⬇️ CSV Pond5</button>
+    <button class="ghost small" id="btnExportAll">⬇️ Semua Platform (ZIP-lite .txt)</button>
+  </div>
+  <div class="hint" style="margin-top:6px">
+    Metadata juga otomatis diunduh sebagai file <code>.csv</code> pendamping video setiap kali kamu merekam. Tinggal upload ke portal kontributor:
+    <br>• <b>Adobe Stock</b>: <a target="_blank" style="color:var(--accent-2)" href="https://contributor.stock.adobe.com">contributor.stock.adobe.com</a> → Upload → Bulk CSV
+    <br>• <b>Shutterstock</b>: <a target="_blank" style="color:var(--accent-2)" href="https://submit.shutterstock.com">submit.shutterstock.com</a> → CSV Upload
+    <br>• <b>Pond5</b>: <a target="_blank" style="color:var(--accent-2)" href="https://www.pond5.com/index.php?page=upload">pond5.com/upload</a>
+    <br>• <b>Motion Array / Envato / iStock</b>: gunakan file <i>Semua Platform</i> — copy-paste per kolom.
+  </div>
+</section>
+<p class="footer">Berjalan sepenuhnya di perangkat — Android & PC. <span class="badge">Offline ready</span> <span class="badge">Green Screen 🟩</span></p>
+
+<script>
+(() => {
+  const backgrounds = [
+    { name: 'Green Screen', type: 'solid', a: '#00B140', tag:'GREEN' },
+    { name: 'Blue Screen',  type: 'solid', a: '#0047BB', tag:'BLUE' },
+    { name: 'Transparan (Hitam)', type: 'solid', a: '#000000' },
+    { name: 'Putih Bersih', type: 'solid', a: '#ffffff' },
+    { name: 'Ungu',   type: 'grad', a: '#7c5cff', b: '#22d3ee' },
+    { name: 'Sunset', type: 'grad', a: '#ff6a3d', b: '#ffcf5c' },
+    { name: 'Pink',   type: 'grad', a: '#ff5f9e', b: '#a445ff' },
+    { name: 'Ocean',  type: 'grad', a: '#0072ff', b: '#00c6ff' },
+    { name: 'Forest', type: 'grad', a: '#134e5e', b: '#71b280' },
+    { name: 'Fire',   type: 'grad', a: '#ff416c', b: '#ff4b2b' },
+    { name: 'Night',  type: 'grad', a: '#0f2027', b: '#2c5364' },
+    { name: 'Gold',   type: 'grad', a: '#f7971e', b: '#ffd200' },
+    { name: 'Mint',   type: 'grad', a: '#11998e', b: '#38ef7d' },
+    { name: 'Berry',  type: 'grad', a: '#8e2de2', b: '#4a00e0' },
+    { name: 'Aurora', type: 'grad', a: '#00c9a7', b: '#845ec2' },
+    { name: 'Peach',  type: 'grad', a: '#ffecd2', b: '#fcb69f' },
+    { name: 'Steel',  type: 'grad', a: '#485563', b: '#29323c' },
+    { name: 'Merah',  type: 'solid', a: '#e11d48' },
+    { name: 'Biru',   type: 'solid', a: '#2563eb' },
+    { name: 'Hijau',  type: 'solid', a: '#16a34a' },
+    { name: 'Hitam',  type: 'solid', a: '#111827' },
+  ];
+
+  // Big Adobe-Stock-friendly library (200+ emoji icons organized).
+  const iconCategories = {
+    'Populer':   ['🚀','⭐','❤️','🔥','⚡','✨','💎','🌟','🎯','🏆','👑','💯','🎉','🎊','💫','🌈','☀️','🌙','☁️','⛅'],
+    'Bisnis':    ['💼','📈','📊','📉','💰','💵','💳','🏦','📱','💻','🖥️','⌨️','🖱️','📇','📎','📌','📍','📅','📆','🗂️','📁','📂','📝','✏️','✒️','🖊️','📧','📨','📤','📥','📬','📮','🔐','🔑','🗝️','🔒','🔓','⚖️','🎓','🏢'],
+    'Sosmed':    ['👍','👎','👏','🙌','🤝','👊','✌️','🤟','🤘','👌','🤌','🤏','🫰','🫶','💪','🧠','👁️','💬','🗨️','🗯️','💭','🔔','🔕','📢','📣','📯','🎙️','🎚️','🎛️','📡'],
+    'Emoji':     ['😀','😃','😄','😁','😆','🥹','😅','😂','🤣','🥲','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🥸','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🫣','🤗','🫡','🤔','🫢','🤭','🤫','🤥','😶','🫥','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕','🤑','🤠'],
+    'Alam':      ['🌸','🌼','🌻','🌷','🌹','🥀','💐','🌺','🍀','🍁','🍂','🍃','🌱','🌿','☘️','🌵','🌴','🌳','🌲','🎋','🎍','🌾','🪴','🌊','🏔️','⛰️','🗻','🏕️','🏖️','🏝️','🌋','🌅','🌄','🌠','🌌','⭐','🌟','💫','☄️','🪐','🌍','🌎','🌏','🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘','🌚','🌝'],
+    'Hewan':     ['🦄','🐉','🐲','🐺','🦊','🐱','🐶','🐰','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🙈','🙉','🙊','🐒','🐔','🐧','🐦','🐤','🦆','🦅','🦉','🦇','🐴','🦓','🦌','🐢','🐍','🦎','🐙','🦑','🦐','🦞','🦀','🐠','🐟','🐬','🐳','🐋','🦈','🐊','🐆','🐅','🐘','🦏','🦒','🐫','🐪','🦘','🦥','🦦','🐕','🐩','🦜','🦚','🦢'],
+    'Makanan':   ['🍕','🍔','🍟','🌭','🥪','🌮','🌯','🥙','🧆','🥗','🍝','🍜','🍲','🍛','🍣','🍱','🍤','🍙','🍚','🍘','🍥','🥠','🍡','🍢','🍧','🍨','🍦','🥧','🧁','🍰','🎂','🍮','🍭','🍬','🍫','🍩','🍪','☕','🍵','🧋','🥤','🧃','🍺','🍻','🍷','🥂','🥃','🍹','🍸','🍾','🍎','🍏','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🥑','🥦','🥬','🥒','🌶️','🫑','🌽','🥕','🧄','🧅','🥔','🍠'],
+    'Aktivitas': ['⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🪀','🏓','🏸','🏒','🏑','🥍','🏏','🪃','🥅','⛳','🪁','🏹','🎣','🤿','🥊','🥋','🎽','🛹','🛼','🛷','⛸️','🥌','🎿','⛷️','🏂','🪂','🏋️','🤼','🤸','🤺','⛹️','🤾','🏌️','🏇','🧘','🏄','🏊','🚴','🚵','🧗','🎪','🎭','🎨','🎬','🎤','🎧','🎼','🎹','🥁','🎷','🎺','🎸','🪕','🎻','🪘','🎲','♟️','🎯','🎳','🎮','🎰','🧩'],
+    'Objek':     ['💡','🔦','🕯️','🪔','🧯','🛢️','💸','🧾','💊','💉','🩸','🩹','🩺','🚪','🪑','🛏️','🛋️','🪞','🪟','🧸','🎁','🎈','🎏','🎀','🎗️','🎟️','🎫','🏷️','📦','📫','📪','🗳️','✂️','🔍','🔎','🕵️','⚙️','🔧','🔨','⛏️','🛠️','🗡️','⚔️','🔫','🪃','🏹','🛡️','🪚','🧲','⚗️','🧪','🧫','🧬','🔬','🔭','📡','💾','💿','📀','🎞️','📷','📸','🎥','📹','📺','📻','🎙️','⏱️','⏲️','⏰','🕰️','⏳','⌛','📡','🔋','🔌','💡','🔦','🧭','🗺️'],
+    'Simbol':    ['❤️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💗','💖','💘','💝','💟','☮️','✝️','☪️','🕉️','☸️','✡️','🔯','🕎','☯️','☦️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','🉑','☢️','☣️','📴','📳','🈶','🈚','🈸','🈺','🈷️','✴️','🆚','💮','🉐','㊙️','㊗️','🈴','🈵','🈹','🈲','🅰️','🅱️','🆎','🆑','🅾️','🆘','❌','⭕','🛑','⛔','📛','🚫','💯','💢','♨️','🚷','🚯','🚳','🚱','🔞','📵','🚭','❗','❕','❓','❔','‼️','⁉️','🔅','🔆','〽️','⚠️','🚸','🔱','⚜️','🔰','♻️','✅','🈯','💹','❇️','✳️','❎','🌐','💠','Ⓜ️','🌀','💤','🏧','🚾','♿','🅿️','🈳','🈂️','🛂','🛃','🛄','🛅','🚹','🚺','🚼','🚻','🚮','🎦','📶','🈁','🔣','ℹ️','🔤','🔡','🔠','🆖','🆗','🆙','🆒','🆕','🆓','0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟','🔢','#️⃣','*️⃣','▶️','⏸️','⏯️','⏹️','⏺️','⏭️','⏮️','⏩','⏪','⏫','⏬','◀️','🔼','🔽','➡️','⬅️','⬆️','⬇️','↗️','↘️','↙️','↖️','↕️','↔️','↪️','↩️','⤴️','⤵️','🔀','🔁','🔂','🔄','🔃','🎵','🎶','➕','➖','➗','✖️','🟰','♾️','💲','💱','™️','©️','®️','〰️','➰','➿','🔚','🔙','🔛','🔝','🔜','✔️','☑️','🔘','🔴','🟠','🟡','🟢','🔵','🟣','⚫','⚪','🟤','🔺','🔻','🔸','🔹','🔶','🔷','🔳','🔲','▪️','▫️','◾','◽','◼️','◻️','🟥','🟧','🟨','🟩','🟦','🟪','⬛','⬜','🟫'],
+  };
+
+  const state = {
+    bgIndex: 0,
+    pickedIcons: ['🚀'],   // multi-icon list
+    size: 55,
+    duration: 4,
+    motion: 'pulse',
+    layout: 'center',
+    speed: 10,
+    quality: 'standard',
+    fps: 30,
+    resolution: 1080,
+    bitrate: 10,
+    activeCat: 'Populer',
+  };
+
+  const QUALITIES = {
+    draft:    { res: 720,  fps: 24, br: 4  },
+    standard: { res: 1080, fps: 30, br: 10 },
+    high:     { res: 1080, fps: 60, br: 16 },
+    ultra:    { res: 1440, fps: 60, br: 24 },
+    '4k':     { res: 2160, fps: 60, br: 40 },
+  };
+
+  const canvas = document.getElementById('preview');
+  const ctx = canvas.getContext('2d');
+  const bgGrid = document.getElementById('bgGrid');
+  const iconGrid = document.getElementById('iconGrid');
+  const tabRow = document.getElementById('tabRow');
+  const pickedList = document.getElementById('pickedList');
+  const pickedCount = document.getElementById('pickedCount');
+
+  // Backgrounds
+  backgrounds.forEach((bg, i) => {
+    const d = document.createElement('div');
+    d.className = 'swatch' + (i === 0 ? ' selected' : '');
+    d.title = bg.name + (bg.tag === 'GREEN' ? ' (Green Screen)' : '');
+    d.style.background = bg.type === 'grad'
+      ? `linear-gradient(135deg, ${bg.a}, ${bg.b})` : bg.a;
+    if (bg.tag === 'GREEN') {
+      d.style.boxShadow = 'inset 0 0 0 2px #22c55e';
+    }
+    d.onclick = () => {
+      state.bgIndex = i;
+      [...bgGrid.children].forEach(c => c.classList.remove('selected'));
+      d.classList.add('selected');
+    };
+    bgGrid.appendChild(d);
+  });
+
+  // Category tabs
+  Object.keys(iconCategories).forEach((cat, i) => {
+    const t = document.createElement('button');
+    t.className = 'tab' + (i === 0 ? ' active' : '');
+    t.textContent = cat;
+    t.onclick = () => {
+      state.activeCat = cat;
+      [...tabRow.children].forEach(c => c.classList.remove('active'));
+      t.classList.add('active');
+      renderIcons();
+    };
+    tabRow.appendChild(t);
+  });
+
+  function renderIcons() {
+    iconGrid.innerHTML = '';
+    const list = iconCategories[state.activeCat];
+    list.forEach(ic => {
+      const d = document.createElement('div');
+      const cnt = state.pickedIcons.filter(x => x === ic).length;
+      d.className = 'icon-btn' + (cnt ? ' picked' : '');
+      d.textContent = ic;
+      if (cnt > 1) {
+        const b = document.createElement('span');
+        b.className = 'count'; b.textContent = cnt;
+        d.appendChild(b);
+      }
+      d.onclick = () => {
+        state.pickedIcons.push(ic);
+        if (state.pickedIcons.length > 30) state.pickedIcons.shift();
+        refreshPicked();
+      };
+      iconGrid.appendChild(d);
+    });
+  }
+
+  function refreshPicked() {
+    pickedList.innerHTML = '';
+    state.pickedIcons.forEach((ic, idx) => {
+      const c = document.createElement('span');
+      c.className = 'chip';
+      c.innerHTML = `<span>${ic}</span>`;
+      const btn = document.createElement('button');
+      btn.textContent = '×';
+      btn.onclick = () => { state.pickedIcons.splice(idx,1); refreshPicked(); };
+      c.appendChild(btn);
+      pickedList.appendChild(c);
+    });
+    pickedCount.textContent = state.pickedIcons.length + ' dipilih';
+    renderIcons();
+  }
+  renderIcons();
+  refreshPicked();
+
+  document.getElementById('btnClearIcons').onclick = () => { state.pickedIcons = []; refreshPicked(); };
+  document.getElementById('btnRandomIcons').onclick = () => {
+    const all = Object.values(iconCategories).flat();
+    state.pickedIcons = Array.from({length:5}, () => all[Math.floor(Math.random()*all.length)]);
+    refreshPicked();
+  };
+  document.getElementById('btnAddEmoji').onclick = () => {
+    const v = document.getElementById('customEmoji').value.trim();
+    if (v) { state.pickedIcons.push(v); refreshPicked(); document.getElementById('customEmoji').value=''; }
+  };
+
+  // Controls
+  const bind = (id, key, fmt) => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', () => {
+      state[key] = +el.value;
+      const out = document.getElementById(id.replace(/[A-Za-z]+$/,'') + 'Val') || document.getElementById(fmt);
+    });
+  };
+  document.getElementById('size').addEventListener('input', e => {
+    state.size = +e.target.value; document.getElementById('sizeVal').textContent = e.target.value+'%';
+  });
+  document.getElementById('duration').addEventListener('input', e => {
+    state.duration = +e.target.value; document.getElementById('durVal').textContent = e.target.value+' dtk';
+  });
+  document.getElementById('speed').addEventListener('input', e => {
+    state.speed = +e.target.value; document.getElementById('spdVal').textContent = (e.target.value/10).toFixed(1)+'x';
+  });
+  document.getElementById('fps').addEventListener('input', e => {
+    state.fps = +e.target.value; document.getElementById('fpsVal').textContent = e.target.value+' fps';
+    document.getElementById('quality').value = 'custom'; state.quality='custom';
+  });
+  document.getElementById('bitrate').addEventListener('input', e => {
+    state.bitrate = +e.target.value; document.getElementById('brVal').textContent = e.target.value+' Mbps';
+    document.getElementById('quality').value = 'custom'; state.quality='custom';
+  });
+  document.getElementById('motion').addEventListener('change', e => state.motion = e.target.value);
+  document.getElementById('layout').addEventListener('change', e => state.layout = e.target.value);
+  document.getElementById('resolution').addEventListener('change', e => {
+    state.resolution = +e.target.value;
+    document.getElementById('quality').value = 'custom'; state.quality='custom';
+  });
+  document.getElementById('quality').addEventListener('change', e => {
+    state.quality = e.target.value;
+    if (state.quality !== 'custom') {
+      const q = QUALITIES[state.quality];
+      state.resolution = q.res; state.fps = q.fps; state.bitrate = q.br;
+      document.getElementById('resolution').value = String(q.res);
+      document.getElementById('fps').value = q.fps; document.getElementById('fpsVal').textContent = q.fps+' fps';
+      document.getElementById('bitrate').value = q.br; document.getElementById('brVal').textContent = q.br+' Mbps';
+    }
+  });
+  // apply default preset
+  (function initPreset(){
+    const q = QUALITIES[state.quality];
+    state.resolution = q.res; state.fps = q.fps; state.bitrate = q.br;
+    document.getElementById('resolution').value = String(q.res);
+    document.getElementById('fps').value = q.fps; document.getElementById('fpsVal').textContent = q.fps+' fps';
+    document.getElementById('bitrate').value = q.br; document.getElementById('brVal').textContent = q.br+' Mbps';
+  })();
+
+  // Drawing
+  function drawBackground(c, W, H) {
+    const bg = backgrounds[state.bgIndex];
+    if (bg.type === 'grad') {
+      const g = c.createLinearGradient(0,0,W,H);
+      g.addColorStop(0,bg.a); g.addColorStop(1,bg.b);
+      c.fillStyle = g;
+    } else {
+      c.fillStyle = bg.a;
+    }
+    c.fillRect(0,0,W,H);
+    // subtle glow ONLY for non green/blue screens (keep chroma flat)
+    if (bg.tag !== 'GREEN' && bg.tag !== 'BLUE') {
+      const glow = c.createRadialGradient(W/2,H/2,0,W/2,H/2,W*0.6);
+      glow.addColorStop(0,'rgba(255,255,255,0.12)');
+      glow.addColorStop(1,'rgba(255,255,255,0)');
+      c.fillStyle = glow; c.fillRect(0,0,W,H);
+    }
+  }
+
+  function iconPositions(W, H, n) {
+    const out = [];
+    if (n === 0) return out;
+    switch (state.layout) {
+      case 'row': {
+        for (let i=0;i<n;i++) out.push({ x: W*(i+1)/(n+1), y: H/2 });
+        break;
+      }
+      case 'circle': {
+        const r = Math.min(W,H)*0.28;
+        for (let i=0;i<n;i++){
+          const a = (i/n)*Math.PI*2 - Math.PI/2;
+          out.push({ x: W/2 + Math.cos(a)*r, y: H/2 + Math.sin(a)*r });
+        }
+        break;
+      }
+      case 'grid': {
+        const cols = Math.ceil(Math.sqrt(n));
+        const rows = Math.ceil(n/cols);
+        for (let i=0;i<n;i++){
+          const cx = i%cols, cy = Math.floor(i/cols);
+          out.push({ x: W*(cx+1)/(cols+1), y: H*(cy+1)/(rows+1) });
+        }
+        break;
+      }
+      case 'random': {
+        // deterministic random based on index
+        for (let i=0;i<n;i++){
+          const s = Math.sin(i*9301+49297)*233280;
+          const rx = (s - Math.floor(s));
+          const s2 = Math.sin(i*1301+7919)*233280;
+          const ry = (s2 - Math.floor(s2));
+          out.push({ x: W*(0.15+rx*0.7), y: H*(0.15+ry*0.7) });
+        }
+        break;
+      }
+      default: { // center stacked
+        for (let i=0;i<n;i++) out.push({ x: W/2, y: H/2 });
+      }
+    }
+    return out;
+  }
+
+  function drawFrame(c, W, H, t) {
+    drawBackground(c, W, H);
+    const icons = state.pickedIcons;
+    if (!icons.length) return;
+
+    const speed = state.speed/10;
+    const phase = t*Math.PI*2*speed;
+    const stacked = state.layout === 'center';
+    const baseSize = (state.size/100) * Math.min(W,H) * (stacked ? 0.85 : 0.85/Math.max(1, Math.sqrt(icons.length)));
+    const positions = iconPositions(W, H, icons.length);
+
+    icons.forEach((emoji, i) => {
+      let {x, y} = positions[i];
+      let scale = 1, rot = 0;
+      const p = phase + i*0.6;
+      switch (state.motion) {
+        case 'pulse':  scale = 1 + 0.15*Math.sin(p); break;
+        case 'spin':   rot = p; break;
+        case 'bounce': y += Math.sin(p)*H*0.10; break;
+        case 'orbit':
+          x += Math.cos(p)*W*0.12; y += Math.sin(p)*H*0.12; break;
+        case 'shake':
+          x += Math.sin(p*4)*W*0.03; y += Math.cos(p*3)*H*0.02; break;
+        case 'zoom':   scale = 0.7 + 0.5*(0.5+0.5*Math.sin(p)); break;
+        case 'float':
+          y += Math.sin(p)*H*0.05; rot = Math.sin(p)*0.15; break;
+        case 'wave':
+          y += Math.sin(p + i*0.8)*H*0.08; break;
+        case 'scatter':
+          const ang = i*0.9 + p*0.3;
+          const rad = 0.05 + 0.1*(0.5+0.5*Math.sin(p));
+          x += Math.cos(ang)*W*rad; y += Math.sin(ang)*H*rad; break;
+        case 'none': default: break;
+      }
+      c.save();
+      c.translate(x, y);
+      c.rotate(rot);
+      c.scale(scale, scale);
+      c.font = `${baseSize}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+      c.textAlign = 'center'; c.textBaseline = 'middle';
+      const bg = backgrounds[state.bgIndex];
+      if (bg.tag !== 'GREEN' && bg.tag !== 'BLUE') {
+        c.shadowColor = 'rgba(0,0,0,0.35)';
+        c.shadowBlur = baseSize*0.15;
+        c.shadowOffsetY = baseSize*0.04;
+      }
+      c.fillText(emoji, 0, 0);
+      c.restore();
+    });
+  }
+
+  // Preview loop
+  let raf=null, start=0;
+  function loop(ts){
+    if(!start) start=ts;
+    const t = ((ts-start)/1000) % Math.max(1, state.duration);
+    drawFrame(ctx, canvas.width, canvas.height, t/state.duration);
+    raf = requestAnimationFrame(loop);
+  }
+  function stop(){ if(raf) cancelAnimationFrame(raf); raf=null; }
+  function play(){ if(raf) return; start=0; raf=requestAnimationFrame(loop); }
+  drawFrame(ctx, canvas.width, canvas.height, 0);
+  play();
+  document.getElementById('btnPlay').onclick = () => { stop(); play(); };
+
+  // Recording
+  const statusEl = document.getElementById('status');
+  const progressBar = document.getElementById('progressBar');
+  const btnRecord = document.getElementById('btnRecord');
+
+  function pickMime() {
+    const list = [
+      'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=vp9',
+      'video/webm;codecs=vp8',
+      'video/webm',
+      'video/mp4;codecs=h264',
+      'video/mp4',
+    ];
+    for (const m of list) if (window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m;
+    return '';
+  }
+
+  async function record() {
+    if (!state.pickedIcons.length) { statusEl.textContent = 'Pilih minimal 1 ikon dulu.'; return; }
+    if (!window.MediaRecorder) { statusEl.textContent = 'Browser tidak mendukung MediaRecorder.'; return; }
+    stop();
+    btnRecord.disabled = true;
+    statusEl.textContent = 'Merekam video...';
+    progressBar.style.width = '0%';
+
+    const R = state.resolution;
+    const rec = document.createElement('canvas');
+    rec.width = R; rec.height = R;
+    const rctx = rec.getContext('2d');
+    const fps = state.fps;
+    const stream = rec.captureStream(fps);
+    const mime = pickMime();
+    const mr = new MediaRecorder(stream, mime
+      ? { mimeType: mime, videoBitsPerSecond: state.bitrate*1_000_000 }
+      : { videoBitsPerSecond: state.bitrate*1_000_000 });
+    const chunks = [];
+    mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+
+    const total = state.duration*1000;
+    const startedAt = performance.now();
+    let stopped = false;
+    mr.start(100);
+
+    function frame(){
+      const now = performance.now();
+      const elapsed = now - startedAt;
+      const norm = Math.min(1, elapsed/total);
+      drawFrame(rctx, R, R, norm);
+      ctx.drawImage(rec, 0, 0, canvas.width, canvas.height);
+      progressBar.style.width = (norm*100).toFixed(1) + '%';
+      if (elapsed >= total) { if (!stopped) { stopped=true; mr.stop(); } return; }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+
+    mr.onstop = () => {
+      const ext = mime.includes('mp4') ? 'mp4' : 'webm';
+      const blob = new Blob(chunks, { type: mime || 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const baseName = `icon-video-${state.resolution}p-${Date.now()}`;
+      a.href = url; a.download = `${baseName}.${ext}`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 5000);
+      // Auto-save metadata sidecar files (Adobe CSV + all-platform bundle)
+      try { window.__saveMetaFor && window.__saveMetaFor(`${baseName}.${ext}`); } catch(e){}
+      statusEl.textContent = `Selesai! ${state.resolution}p · ${state.fps}fps · ${state.bitrate}Mbps (${ext.toUpperCase()}).`;
+      progressBar.style.width = '100%';
+      btnRecord.disabled = false;
+      play();
+    };
+  }
+  btnRecord.onclick = record;
+
+  // ================= Metadata (Stock Platforms) =================
+  const motionKeywords = {
+    pulse:['pulse','pulsing','beat','heartbeat'], spin:['spinning','rotation','rotating'],
+    bounce:['bouncing','bounce','jump'], orbit:['orbit','circular motion','revolving'],
+    shake:['shake','vibration','jitter'], zoom:['zoom','scale animation'],
+    float:['floating','hovering','levitation'], wave:['wave','wavy','undulation'],
+    scatter:['scatter','particle','burst'], none:['static','still'],
+  };
+  const baseKeywords = [
+    'animated icon','icon animation','motion graphic','loop','looping','seamless loop',
+    '4k','ultra hd','high resolution','vertical','square','social media',
+    'colorful','vibrant','modern','minimal','flat design','digital','vector style',
+    'background','overlay','intro','outro','logo reveal ready','copy space',
+    'youtube','tiktok','instagram','reel','shorts','story','presentation','template',
+  ];
+  function buildKeywords() {
+    const bg = backgrounds[state.bgIndex];
+    const kw = new Set(baseKeywords);
+    kw.add(bg.name.toLowerCase());
+    if (bg.tag === 'GREEN') { kw.add('green screen'); kw.add('chroma key'); kw.add('chromakey'); kw.add('keying'); }
+    if (bg.tag === 'BLUE')  { kw.add('blue screen'); kw.add('chroma key'); }
+    (motionKeywords[state.motion]||[]).forEach(k=>kw.add(k));
+    kw.add(state.layout+' layout');
+    // icon-derived hints
+    const emojiHint = {
+      '🚀':['rocket','launch','startup'], '⭐':['star','favorite'], '❤️':['heart','love','valentine'],
+      '🔥':['fire','flame','trending'], '⚡':['lightning','energy','power'], '💎':['diamond','luxury','premium'],
+      '🏆':['trophy','award','winner'], '👑':['crown','king','royal'], '💰':['money','finance','business'],
+      '📈':['chart','growth','analytics'], '🎯':['target','goal','focus'], '🎉':['party','celebration','confetti'],
+      '🌈':['rainbow','pride','colorful'], '☀️':['sun','summer','weather'], '🌙':['moon','night','sleep'],
+      '💡':['idea','lightbulb','innovation'], '📱':['phone','mobile','smartphone'], '💻':['laptop','computer','tech'],
+      '🎵':['music','audio','sound'], '🎬':['movie','film','cinema'],
+    };
+    state.pickedIcons.forEach(ic => {
+      (emojiHint[ic]||[]).forEach(k=>kw.add(k));
+    });
+    return [...kw].slice(0, 49);
+  }
+  function autoTitle() {
+    const bg = backgrounds[state.bgIndex];
+    const n = state.pickedIcons.length;
+    const bgLabel = bg.tag === 'GREEN' ? 'Green Screen'
+                  : bg.tag === 'BLUE' ? 'Blue Screen'
+                  : bg.name;
+    const motionLabel = ({pulse:'Pulsing',spin:'Spinning',bounce:'Bouncing',orbit:'Orbiting',
+      shake:'Shaking',zoom:'Zooming',float:'Floating',wave:'Waving',scatter:'Scattered',none:'Static'})[state.motion];
+    return `${motionLabel} ${n>1?'Multiple ':''}Colorful Animated Icons on ${bgLabel} — Seamless Loop ${state.resolution>=2160?'4K':state.resolution>=1440?'QHD':'HD'}`;
+  }
+  function autoDesc() {
+    const bg = backgrounds[state.bgIndex];
+    const icons = state.pickedIcons.join(' ');
+    return `Seamless looping motion graphic of animated icons (${icons}) on a ${bg.name.toLowerCase()} background. `
+      + `Perfect for social media, video intros, presentations, and content creation. `
+      + `${state.resolution}p ${state.fps}fps, ${state.duration} seconds.`;
+  }
+  const $ = id => document.getElementById(id);
+  function autofillMeta() {
+    $('metaTitle').value = autoTitle();
+    $('metaDesc').value  = autoDesc();
+    $('metaKeywords').value = buildKeywords().join(', ');
+  }
+  $('btnAutoMeta').onclick = autofillMeta;
+
+  function currentMeta() {
+    const title = $('metaTitle').value.trim() || autoTitle();
+    const desc  = $('metaDesc').value.trim()  || autoDesc();
+    const kwStr = $('metaKeywords').value.trim();
+    const keywords = (kwStr ? kwStr.split(',').map(s=>s.trim()).filter(Boolean) : buildKeywords());
+    return {
+      title, desc, keywords,
+      category: $('metaCategory').value,
+      release: $('metaRelease').value,
+      editorial: $('metaEditorial').value,
+      author: $('metaAuthor').value.trim(),
+    };
+  }
+  function csvEscape(v){ v = String(v ?? ''); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
+  function downloadBlob(name, text, type='text/csv') {
+    const blob = new Blob([text], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 3000);
+  }
+  // CSV templates matching each platform's official bulk-upload format
+  function csvAdobe(m, filename) {
+    // Adobe Stock: Filename, Title, Keywords, Category, Releases
+    const header = ['Filename','Title','Keywords','Category','Releases'];
+    const row = [filename, m.title, m.keywords.join(','), m.category, m.release==='none'?'':m.release];
+    return header.join(',')+'\n'+row.map(csvEscape).join(',')+'\n';
+  }
+  function csvShutterstock(m, filename) {
+    // Shutterstock: Filename, Description, Keywords, Categories, Editorial
+    const header = ['Filename','Description','Keywords','Categories','Editorial'];
+    const row = [filename, m.title+' — '+m.desc, m.keywords.join(','), m.category, m.editorial==='editorial'?'yes':'no'];
+    return header.join(',')+'\n'+row.map(csvEscape).join(',')+'\n';
+  }
+  function csvPond5(m, filename) {
+    // Pond5: Filename, Title, Description, Keywords, Categories
+    const header = ['Filename','Title','Description','Keywords','Categories'];
+    const row = [filename, m.title, m.desc, m.keywords.join(';'), m.category];
+    return header.join(',')+'\n'+row.map(csvEscape).join(',')+'\n';
+  }
+  function bundleAll(m, filename) {
+    return (
+`# Metadata Bundle — ${filename}
+# Copy-paste kolom ke masing-masing portal kontributor.
+
+========== ADOBE STOCK ==========
+Title      : ${m.title}
+Keywords   : ${m.keywords.join(', ')}
+Category   : ${m.category}
+Releases   : ${m.release==='none'?'(none)':m.release}
+
+========== SHUTTERSTOCK ==========
+Description: ${m.title} — ${m.desc}
+Keywords   : ${m.keywords.join(', ')}
+Categories : ${m.category}
+Editorial  : ${m.editorial==='editorial'?'Yes':'No'}
+
+========== POND5 ==========
+Title      : ${m.title}
+Description: ${m.desc}
+Keywords   : ${m.keywords.join('; ')}
+Categories : ${m.category}
+
+========== MOTION ARRAY ==========
+Title      : ${m.title}
+Description: ${m.desc}
+Tags       : ${m.keywords.join(', ')}
+
+========== ENVATO ELEMENTS / VIDEOHIVE ==========
+Item Name  : ${m.title}
+Description: ${m.desc}
+Tags (max 15): ${m.keywords.slice(0,15).join(', ')}
+
+========== ISTOCK / GETTY ==========
+Title      : ${m.title}
+Description: ${m.desc}
+Keywords   : ${m.keywords.join(', ')}
+Release    : ${m.release==='none'?'(none)':m.release}
+
+Author     : ${m.author || '(kosong)'}
+Spec       : ${state.resolution}p · ${state.fps}fps · ${state.bitrate}Mbps · ${state.duration}s
+`);
+  }
+
+  function stampName() {
+    return `icon-video-${state.resolution}p-${Date.now()}`;
+  }
+  $('btnExportAdobe').onclick   = () => { const m=currentMeta(); downloadBlob(stampName()+'-adobe.csv', csvAdobe(m, stampName()+'.mp4')); };
+  $('btnExportShutter').onclick = () => { const m=currentMeta(); downloadBlob(stampName()+'-shutterstock.csv', csvShutterstock(m, stampName()+'.mp4')); };
+  $('btnExportPond').onclick    = () => { const m=currentMeta(); downloadBlob(stampName()+'-pond5.csv', csvPond5(m, stampName()+'.mp4')); };
+  $('btnExportAll').onclick     = () => { const m=currentMeta(); downloadBlob(stampName()+'-all-platforms.txt', bundleAll(m, stampName()+'.mp4'), 'text/plain'); };
+
+  // Expose so record() can call it after saving the video
+  window.__saveMetaFor = (baseName) => {
+    const m = currentMeta();
+    downloadBlob(baseName+'-adobe.csv', csvAdobe(m, baseName));
+    downloadBlob(baseName+'-all-platforms.txt', bundleAll(m, baseName), 'text/plain');
+  };
+
+  // initial autofill so the fields aren't empty
+  autofillMeta();
+
+  // Self-download of this HTML file for GitHub Pages deployment
+  document.getElementById('btnDownloadHtml').onclick = async () => {
+    try {
+      const res = await fetch(location.href);
+      const html = await res.text();
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'index.html';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 3000);
+    } catch(e) {
+      alert('Gagal mengunduh. Buka file HTML langsung di browser lalu Save As.');
+    }
+  };
+})();
+</script>
+</body>
+</html>
